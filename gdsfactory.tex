@@ -3,49 +3,41 @@
 %                  Date: January 2026                 %
 %                                                     %
 %     For preparing LaTeX manuscripts for submission  %
-%     to CLEO 2026 (Optica meetings and conferences)  %
+%     to the Proceedings of the SPIE (spie.cls)       %
 %                                                     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass[letterpaper,10pt]{article}
-%% if A4 paper needed, change letterpaper to A4
-
-\usepackage{opticameet3} %% use version 3 for proper copyright statement
-
-%% provide authormark
-\newcommand\authormark[1]{\textsuperscript{#1}}
+\documentclass[]{spie}  %>>> US letter paper; use [a4paper] for A4
 
 %% standard packages and arguments should be modified as needed
 \usepackage{amsmath,amssymb}
-\usepackage[colorlinks=true,bookmarks=false,citecolor=blue,urlcolor=blue]{hyperref}
-
-% ADD THE FOLLOWING COUPLE LINES INTO YOUR PREAMBLE
-\let\OLDthebibliography\thebibliography%
-\renewcommand\thebibliography[1]{
-  \OLDthebibliography{#1}
-  \setlength{\parskip}{0pt}
-  \setlength{\itemsep}{0pt plus 0.3ex}
-}
-
-\begin{document}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,bookmarks=false,citecolor=blue,urlcolor=blue,linkcolor=black]{hyperref}
 
 \title{GDSFactory: An Open-Source Python Library for Chip Design and Simulation}
 
-\author{Joaquin Matres,\authormark{1,*} Niko Savola,\authormark{2,3} Changyu Lian,\authormark{1} Marc de Cea,\authormark{4} Floris Laporte,\authormark{1} Sebastian Goeldi,\authormark{1} and Troy Tamas\authormark{1}}
+\author{Joaquin Matres\supit{a}, Niko Savola\supit{b,c}, Changyu Lian\supit{a}, Marc de Cea\supit{d}, \\
+Floris Laporte\supit{a}, Sebastian Goeldi\supit{a}, and Troy Tamas\supit{a}
+\skiplinehalf
+\supit{a}GDSFactory, 650 Castro St Ste 120 PMB 98035, Mountain View, CA 94041, USA; \\
+\supit{b}Taara Connect, Inc., Sunnyvale, CA 94089, USA; \\
+\supit{c}Department of Applied Physics, Aalto University, P.O. Box 13500, FI-00076 Aalto, Finland; \\
+\supit{d}Lyte AI, 185 N Wolfe Rd, Sunnyvale, CA 94086, USA
+}
 
-\address{\authormark{1}GDSFactory, 650 Castro St Ste 120 PMB 98035, Mountain View, CA 94041, USA\\
-\authormark{2}Taara Connect, Inc., Sunnyvale, CA 94089, USA\\
-\authormark{3}Department of Applied Physics, Aalto University, P.O. Box 13500, FI-00076 Aalto, Finland\\
-\authormark{4}Lyte AI, 185 N Wolfe Rd, Sunnyvale, CA 94086, USA}
-\email{\authormark{*}jmatres@gdsfactory.com}
+\authorinfo{Send correspondence to J.M.: E-mail: jmatres@gdsfactory.com}
 
+\begin{document}
 \maketitle
 
 \begin{abstract}
 We present GDSFactory, an open-source Python library for integrated circuit design automation across photonic, analog, quantum, and MEMS platforms. GDSFactory unifies the full chip-development flow---parametric layout, device simulation, circuit simulation via S-parameter analysis, and verification---within a single scriptable framework that interfaces with leading open-source and commercial solvers and foundry process design kits (PDKs).
 \end{abstract}
 
-\section{Introduction}
+\keywords{photonic integrated circuits, electronic design automation, layout, mask design, device simulation, circuit simulation, process design kit, open-source software, silicon photonics}
+
+\section{INTRODUCTION}
+\label{sec:intro}
 
 Photonic wafer fabrication cycles span many months, and every additional iteration needed to resolve Design-for-X (DfX) challenges---manufacturing, test, and reliability---adds cost, delays customer delivery, and ultimately erodes competitiveness. Software-based design and verification is fast and inexpensive by comparison, but it is only valuable insofar as it matches fabrication ground truth. GDSFactory bridges this gap with a comprehensive Python API spanning layout design, device simulation, circuit simulation, and verification~\cite{gdsfactory}.
 
@@ -58,11 +50,11 @@ Unlike traditional logic-driven electronic design flows~\cite{bogaerts2018}, int
 \label{fig:flow}
 \end{figure}
 
-\section{Layout Design}
+\section{LAYOUT DESIGN}
 
 GDSFactory implements cells as Python functions that return a \texttt{Component} object holding polygons, electrical and optical port metadata, and convenience methods for export and plotting. Cells are built on KLayout's C++ geometry engine~\cite{klayout} and defined through a functional style in which the \texttt{@gf.cell} decorator caches results to eliminate redundant regeneration. Port metadata drives automatic routing, with dedicated routing functions connecting individual ports or entire groups of ports. Components compose hierarchically and can also be assembled declaratively from YAML netlists, enabling schema-driven and machine-generated layouts.
 
-\section{Device Simulation}
+\section{DEVICE SIMULATION}
 
 GDSFactory's gplugins repository~\cite{gplugins} provides unified interfaces to a growing list of simulators by reusing the core layout abstractions (Components, LayerStacks, and Ports). For instance, Components can be meshed via Gmsh~\cite{gmsh} (through the Meshwell wrapper~\cite{meshwell}) for cross-sectional or 3D analysis (Fig.~\ref{fig:mesh}). For the rigorous electromagnetic verification that photonics demands, the library supports full-wave analysis through both Finite-Difference Time-Domain (FDTD) and Finite Element Method (FEM) approaches. FDTD is supported through open-source backends including MEEP~\cite{meep}, Luminescent AI, and the GPU-accelerated Beamz~\cite{beamz}, as well as industry-standard solvers such as Tidy3D~\cite{tidy3d} (cloud-based GPU acceleration) and Lumerical FDTD; a plugin for the open-source fdtdx solver is in development~\cite{fdtdx}. FEM-based and multiphysics solvers include Femwell~\cite{femwell} for waveguide mode analysis and thermal simulation, Palace~\cite{palace} for RF and microwave simulation, and MEOW~\cite{meow} for eigenmode expansion. At the device-physics level, TCAD simulation is supported through DEVSIM~\cite{devsim} for semiconductor device physics and Sentaurus for advanced process modeling. % chktex 13
 
@@ -82,7 +74,7 @@ Together these plugins form a complete device toolbox spanning TCAD, FEM, freque
 \label{fig:device_solvers}
 \end{figure}
 
-\section{Circuit Simulation}
+\section{CIRCUIT SIMULATION}
 
 Circuit-level simulation enables system-scale photonic design. GDSFactory supports this through netlist extraction, which composes device-level models into a full circuit (Fig.~\ref{fig:circuit_solvers}). In the frequency domain, SAX~\cite{sax} performs differentiable S-parameter simulation on JAX, enabling gradient-based optimization, Monte Carlo analysis for yield estimation, and wavelength-dependent S-parameter interpolation from FDTD results. In the time domain, Circulax~\cite{circulax}---a differentiable JAX-based framework---provides transient and time-resolved circuit simulation. For mixed photonic-electronic systems, VLSIR~\cite{vlsir} provides SPICE netlist export.
 
@@ -93,11 +85,11 @@ Circuit-level simulation enables system-scale photonic design. GDSFactory suppor
 \label{fig:circuit_solvers}
 \end{figure}
 
-\section{Process Design Kits}
+\section{PROCESS DESIGN KITS}
 
 PDKs let GDSFactory drop into existing development flows while matching foundry ground-truth data. Open-source PDKs include GlobalFoundries 180nm, SkyWater 130nm~\cite{skywater}, VTT 3\,\textmu{}m SOI, SiEPIC, Cornerstone, IHP, Luxtelligence, and Quantum-RF-PDK\@. Commercial PDKs available through the GDSFactory+ subscription~\cite{gdsfactoryplus} include AIM Photonics, AMF, CompoundTek, Fraunhofer HHI, Smart Photonics, Tower PH18, OpenLight, III-V Labs, LioniX, Ligentec, Lightium, and QCI\@. For designs not tied to a specific foundry, the generic PDK follows standard layer conventions~\cite{chrostowski2015} for cross-foundry compatibility.
 
-\section{GDSFactory+}
+\section{GDSFACTORY+}
 
 GDSFactory+~\cite{gdsfactoryplus} is a commercial platform that extends the open-source library with capabilities for production chip development and team collaboration. Designs can be captured as Python code, declarative YAML netlists, or through a schema-driven graphical schematic editor, and rendered directly in VS Code; all three flows share the same components, PDK, and results. One-click verification checks design rules (DRC), connectivity, and layout-versus-schematic (LVS) against foundry rules, with an interactive results viewer, AI-generated violation summaries, and suggested fixes. Cloud-based simulation and data pipelines scale device, circuit, and multiphysics analyses and unify layouts, simulations, and on-wafer measurements from the device to the wafer and lot level in a shared data platform. Simulations are orchestrated through gSim~\cite{gsim}, a unified client that dispatches jobs to multiple simulators---including SAX and Circulax---over a client-server architecture. GDSFactory+ additionally provides access to proprietary foundry PDKs distributed under non-disclosure agreement (NDA).
 
@@ -110,9 +102,11 @@ At the center of the platform is an AI design agent that keeps the engineer in t
 \label{fig:agent}
 \end{figure}
 
-\section{Conclusion}
+\section{CONCLUSION}
 
 GDSFactory provides a unified, Python-driven workflow spanning layout, device simulation, and circuit simulation. Tight integration between device solvers and circuit simulators enables rapid iteration from component to system level, and its programmatic, open nature makes it a natural substrate for modern agentic design workflows~\cite{Sharma2025}. The open-source library is freely available at \url{https://github.com/gdsfactory/gdsfactory}, and the GDSFactory+ platform---with its schema-driven layout, AI design agent, one-click DRC/LVS, and cloud simulation---at \url{https://gdsfactory.com}.
+
+% References %
 
 \begin{thebibliography}{99}
 
@@ -152,7 +146,7 @@ GDSFactory provides a unified, Python-driven workflow spanning layout, device si
 
 \bibitem{gsim} GDSFactory, ``gSim: A client-server interface for running multiple photonic simulators,'' \url{https://gdsfactory.github.io/gsim/}.
 
-\bibitem{vlsir} D. Fritchman \textit{et al.}, ``VLSIR'' GitHub (2024), \url{https://github.com/vlsir/vlsir}.
+\bibitem{vlsir} D. Fritchman \textit{et al.}, ``VLSIR,'' GitHub (2024), \url{https://github.com/vlsir/vlsir}.
 
 \bibitem{skywater} SkyWater Technology Foundry and Google, ``SkyWater Open Source PDK,'' GitHub (2023), \url{https://github.com/google/skywater-pdk}.
 
