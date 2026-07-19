@@ -64,7 +64,7 @@ GDSFactory implements cells as Python functions that return a \texttt{Component}
 
 \section{Device Simulation}
 
-GDSFactory's gplugins repository~\cite{gplugins} provides unified interfaces to a growing list of simulators by reusing the core layout abstractions (Components, LayerStacks, and Ports). For instance, Components can be meshed via Gmsh~\cite{gmsh} (through the Meshwell wrapper~\cite{meshwell}) for cross-sectional or 3D analysis (Fig.~\ref{fig:mesh}). For the rigorous electromagnetic verification that photonics demands, the library supports full-wave analysis through both Finite-Difference Time-Domain (FDTD) and Finite Element Method (FEM) approaches. FDTD is supported through open-source backends including MEEP~\cite{meep} and Luminescent AI, as well as industry-standard solvers such as Tidy3D~\cite{tidy3d} (cloud-based GPU acceleration) and Lumerical FDTD; a plugin for the open-source fdtdx solver is in development~\cite{fdtdx}. FEM-based and multiphysics solvers include Femwell~\cite{femwell} for waveguide mode analysis and thermal simulation, Palace~\cite{palace} for RF and microwave simulation, and MEOW~\cite{meow} for eigenmode expansion. At the device-physics level, TCAD simulation is supported through DEVSIM~\cite{devsim} for semiconductor device physics and Sentaurus for advanced process modeling. % chktex 13
+GDSFactory's gplugins repository~\cite{gplugins} provides unified interfaces to a growing list of simulators by reusing the core layout abstractions (Components, LayerStacks, and Ports). For instance, Components can be meshed via Gmsh~\cite{gmsh} (through the Meshwell wrapper~\cite{meshwell}) for cross-sectional or 3D analysis (Fig.~\ref{fig:mesh}). For the rigorous electromagnetic verification that photonics demands, the library supports full-wave analysis through both Finite-Difference Time-Domain (FDTD) and Finite Element Method (FEM) approaches. FDTD is supported through open-source backends including MEEP~\cite{meep}, Luminescent AI, and the GPU-accelerated Beamz~\cite{beamz}, as well as industry-standard solvers such as Tidy3D~\cite{tidy3d} (cloud-based GPU acceleration) and Lumerical FDTD; a plugin for the open-source fdtdx solver is in development~\cite{fdtdx}. FEM-based and multiphysics solvers include Femwell~\cite{femwell} for waveguide mode analysis and thermal simulation, Palace~\cite{palace} for RF and microwave simulation, and MEOW~\cite{meow} for eigenmode expansion. At the device-physics level, TCAD simulation is supported through DEVSIM~\cite{devsim} for semiconductor device physics and Sentaurus for advanced process modeling. % chktex 13
 
 \begin{figure}[htbp]
 \centering
@@ -73,17 +73,46 @@ GDSFactory's gplugins repository~\cite{gplugins} provides unified interfaces to 
 \label{fig:mesh}
 \end{figure}
 
+Together these plugins form a complete device toolbox spanning TCAD, FEM, frequency-domain (FDFD), and time-domain (FDTD) solvers through a consistent interface (Fig.~\ref{fig:device_solvers}).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/solvers/device_solvers.png}
+\caption{Device solvers available through gplugins, from TCAD to FDTD: TCAD via DEVSIM and Sentaurus; finite-element multiphysics via Palace and Femwell; frequency-domain electromagnetics and eigenmode expansion via MEOW; and time-domain electromagnetics via MEEP, fdtdx, and the GPU-accelerated Beamz.}
+\label{fig:device_solvers}
+\end{figure}
+
 \section{Circuit Simulation}
 
-Circuit-level simulation enables system-scale photonic design. GDSFactory supports this through netlist extraction, which composes device-level models into a full circuit. For example, SAX~\cite{sax} performs differentiable S-parameter simulation on JAX, enabling gradient-based optimization, Monte Carlo analysis for yield estimation, and wavelength-dependent S-parameter interpolation from FDTD results. For mixed photonic-electronic systems, VLSIR~\cite{vlsir} provides SPICE netlist export.
+Circuit-level simulation enables system-scale photonic design. GDSFactory supports this through netlist extraction, which composes device-level models into a full circuit (Fig.~\ref{fig:circuit_solvers}). In the frequency domain, SAX~\cite{sax} performs differentiable S-parameter simulation on JAX, enabling gradient-based optimization, Monte Carlo analysis for yield estimation, and wavelength-dependent S-parameter interpolation from FDTD results. In the time domain, Circulax~\cite{circulax}---a differentiable JAX-based framework---provides transient and time-resolved circuit simulation. For mixed photonic-electronic systems, VLSIR~\cite{vlsir} provides SPICE netlist export.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/solvers/circuits.png}
+\caption{Circuit solvers for photonic and electronic circuit simulation: SAX for frequency-domain, S-parameter-based analysis, and Circulax for time-domain, transient simulation.}
+\label{fig:circuit_solvers}
+\end{figure}
 
 \section{Process Design Kits}
 
 PDKs let GDSFactory drop into existing development flows while matching foundry ground-truth data. Open-source PDKs include GlobalFoundries 180nm, SkyWater 130nm~\cite{skywater}, VTT 3\,\textmu{}m SOI, SiEPIC, Cornerstone, IHP, Luxtelligence, and Quantum-RF-PDK\@. Commercial PDKs available through the GDSFactory+ subscription~\cite{gdsfactoryplus} include AIM Photonics, AMF, CompoundTek, Fraunhofer HHI, Smart Photonics, Tower PH18, OpenLight, III-V Labs, LioniX, Ligentec, Lightium, and QCI\@. For designs not tied to a specific foundry, the generic PDK follows standard layer conventions~\cite{chrostowski2015} for cross-foundry compatibility.
 
+\section{GDSFactory+}
+
+GDSFactory+~\cite{gdsfactoryplus} is a commercial platform that extends the open-source library with capabilities for production chip development and team collaboration. Designs can be captured as Python code, declarative YAML netlists, or through a schema-driven graphical schematic editor, and rendered directly in VS Code; all three flows share the same components, PDK, and results. One-click verification checks design rules (DRC), connectivity, and layout-versus-schematic (LVS) against foundry rules, with an interactive results viewer, AI-generated violation summaries, and suggested fixes. Cloud-based simulation and data pipelines scale device, circuit, and multiphysics analyses and unify layouts, simulations, and on-wafer measurements from the device to the wafer and lot level in a shared data platform. Simulations are orchestrated through gSim~\cite{gsim}, a unified client that dispatches jobs to multiple simulators---including SAX and Circulax---over a client-server architecture. GDSFactory+ additionally provides access to proprietary foundry PDKs distributed under non-disclosure agreement (NDA).
+
+At the center of the platform is an AI design agent that keeps the engineer in the loop while accelerating every stage of the design cycle (Fig.~\ref{fig:agent}). Through a natural-language interface, the agent generates and modifies parametric layouts, suggests components and circuit topologies, drives simulation and optimization, runs DRC/LVS and proposes fixes, and surfaces data-driven design recommendations. By automating routine steps while leaving design decisions and sign-off with the engineer, this human-in-the-loop workflow reduces iteration count and shortens the path from concept to verified, tape-out-ready design.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/agent/ai_flow.png}
+\caption{Engineer-guided, AI-accelerated design automation in GDSFactory+. A human-in-the-loop agent assists the engineer across the full chip design cycle---layout design, device design and optimization, circuit design and optimization, DRC/LVS verification, and data analysis---through a natural-language interface, automated workflows, optimization guidance, and verification support.}
+\label{fig:agent}
+\end{figure}
+
 \section{Conclusion}
 
-GDSFactory provides a unified, Python-driven workflow spanning layout, device simulation, and circuit simulation. Tight integration between device solvers and circuit simulators enables rapid iteration from component to system level, and its programmatic, open nature makes it a natural substrate for modern agentic design workflows~\cite{Sharma2025}. The library is freely available at \url{https://github.com/gdsfactory/gdsfactory}.
+GDSFactory provides a unified, Python-driven workflow spanning layout, device simulation, and circuit simulation. Tight integration between device solvers and circuit simulators enables rapid iteration from component to system level, and its programmatic, open nature makes it a natural substrate for modern agentic design workflows~\cite{Sharma2025}. The open-source library is freely available at \url{https://github.com/gdsfactory/gdsfactory}, and the GDSFactory+ platform---with its schema-driven layout, AI design agent, one-click DRC/LVS, and cloud simulation---at \url{https://gdsfactory.com}.
 
 \begin{thebibliography}{99}
 
@@ -107,6 +136,8 @@ GDSFactory provides a unified, Python-driven workflow spanning layout, device si
 
 \bibitem{fdtdx} Y. Mahlau \textit{et al.}, ``A flexible framework for large-scale FDTD simulations: open-source inverse design for 3D nanostructures,'' in \textit{Photonic and Phononic Properties of Engineered Nanostructures XV}, vol.~13377, pp. 40--52 (2025), \url{https://github.com/ymahlau/fdtdx}.
 
+\bibitem{beamz} Q. Wach, ``Beamz: A GPU-accelerated electromagnetic FDTD simulation framework for photonic chip design,'' GitHub (2026), \url{https://github.com/beamzorg/beamz}.
+
 \bibitem{femwell} H. Gehring \textit{et al.}, ``Femwell,'' GitHub (2023), \url{https://github.com/HelgeGehring/femwell}.
 
 \bibitem{palace} AWS, ``Palace: 3D Finite Element Solver for Computational Electromagnetics,'' GitHub (2024), \url{https://github.com/awslabs/palace}.
@@ -116,6 +147,10 @@ GDSFactory provides a unified, Python-driven workflow spanning layout, device si
 \bibitem{devsim} J.~E. Sanchez, ``{DEVSIM}: {A} {TCAD} {Semiconductor} {Device} {Simulator},'' \emph{Journal of Open Source Software}, vol.~7, no.~70, p. 3898, Feb. 2022. [Online]. Available: \url{https://doi.org/10.21105/joss.03898}
 
 \bibitem{sax} F. Laporte, ``SAX,'' GitHub (2023), \url{https://github.com/flaport/sax}.
+
+\bibitem{circulax} GDSFactory, ``Circulax: A differentiable circuit simulation framework built on JAX,'' GitHub (2026), \url{https://github.com/gdsfactory/circulax}.
+
+\bibitem{gsim} GDSFactory, ``gSim: A client-server interface for running multiple photonic simulators,'' \url{https://gdsfactory.github.io/gsim/}.
 
 \bibitem{vlsir} D. Fritchman \textit{et al.}, ``VLSIR'' GitHub (2024), \url{https://github.com/vlsir/vlsir}.
 
