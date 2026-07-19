@@ -1,5 +1,6 @@
 # Compiled PDFs should be in the gh-pages branch
 gdsfactory.pdf
+extra/
 
 # LaTeX files
 *.aux
